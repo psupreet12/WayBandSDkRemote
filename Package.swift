@@ -25,5 +25,6 @@ let package = Package(
 //            name: "WayBandSDkRemoteTests",
 //            dependencies: ["WayBandSDkRemote"]),
         .binaryTarget(name: "WayBandSDK", url: "https://github.com/psupreet12/WaybandSDKDemo/blob/main/WayBandSDK.xcframework.zip?raw=true", checksum: "363a53fc879e24f6121dcfb85568765e4498054b6e45f32ad89d15d6481690b2")
+        
     ]
 )
