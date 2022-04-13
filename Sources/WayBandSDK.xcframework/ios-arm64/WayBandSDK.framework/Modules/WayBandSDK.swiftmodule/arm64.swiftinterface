@@ -1,0 +1,1089 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.4.2 (swiftlang-1205.0.28.2 clang-1205.0.19.57)
+// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name WayBandSDK
+import AudioToolbox
+import Compression
+import CoreBluetooth
+import CoreFoundation
+import CoreHaptics
+import Dispatch
+import Foundation
+import Swift
+import UIKit
+@_exported import WayBandSDK
+import zlib
+extension Archive {
+  final public func addEntry(with path: Swift.String, relativeTo baseURL: Foundation.URL, compressionMethod: WayBandSDK.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil) throws
+  final public func addEntry(with path: Swift.String, fileURL: Foundation.URL, compressionMethod: WayBandSDK.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil) throws
+  final public func addEntry(with path: Swift.String, type: WayBandSDK.Entry.EntryType, uncompressedSize: Swift.Int64, modificationDate: Foundation.Date = Date(), permissions: Swift.UInt16? = nil, compressionMethod: WayBandSDK.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil, provider: (Swift.Int64, Swift.Int) throws -> Foundation.Data) throws
+  final public func remove(_ entry: WayBandSDK.Entry, bufferSize: Swift.Int = defaultReadChunkSize, progress: Foundation.Progress? = nil) throws
+}
+extension Archive {
+  final public var data: Foundation.Data? {
+    get
+  }
+}
+public protocol BluetoothPairingProviderDelegate {
+  func bluetoothPairingProvider(_ provider: WayBandSDK.BluetoothPairingProvider, didChange step: WayBandSDK.BluetoothPairingStep, isFirstTime: Swift.Bool)
+  func bluetoothPairingProviderBluetoothIsTurnedOff(_ provider: WayBandSDK.BluetoothPairingProvider)
+  func bluetoothPairingProviderDidConnectWithDevice(_ provider: WayBandSDK.BluetoothPairingProvider)
+  func bluetoothPairingProviderPairingNotAllowed(_ provider: WayBandSDK.BluetoothPairingProvider)
+}
+public class BluetoothPairingProvider {
+  public var didConnectionFailed: Swift.Bool
+  final public let notificationCenter: Foundation.NotificationCenter
+  final public let bluetoothManager: WayBandSDK.BluetoothManager
+  final public let isFirstTime: Swift.Bool
+  public var delegate: WayBandSDK.BluetoothPairingProviderDelegate?
+  public init(isFirstTime: Swift.Bool = !UserDefaults.standard.bool(forKey: "triedWaybandConnection"))
+  public func informAboutStepChange()
+  public func perform()
+  public func useiPhone()
+  public func stopScanning()
+  @objc deinit
+}
+extension BluetoothPairingProvider {
+  public func errorOccured()
+  public func scanForPeripherals()
+  public func checkBluetoothManagerIfCanStartScanning()
+  public func observeBluetoothManager()
+}
+public class CustomVibration : WayBandSDK.BlutoothVibration {
+  final public let peripheral: WayBandSDK.BluetoothPeripheral
+  final public let isTwoMotorDevice: Swift.Bool
+  required public init(peripheral: WayBandSDK.BluetoothPeripheral, isTwoMotorDevice: Swift.Bool)
+  public func execute(delay: Foundation.TimeInterval = 0)
+  open func executeOneMotorVibration()
+  open func executeTwoMotorVibration()
+  public var initializationBlock: () -> Swift.Void {
+    get
+    set
+  }
+  public var completionBlock: () -> Swift.Void {
+    get
+    set
+  }
+  public func calcVibrateTime(percent: Swift.Double, duration: Swift.Double, count: Swift.Double) -> Swift.Double
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class DFUServiceController : ObjectiveC.NSObject {
+  @objc public func pause()
+  @objc public func resume()
+  @objc public func abort() -> Swift.Bool
+  @objc public func restart()
+  @objc public var paused: Swift.Bool {
+    @objc get
+  }
+  @objc public var aborted: Swift.Bool {
+    @objc get
+  }
+  @objc deinit
+}
+@_inheritsConvenienceInitializers final public class NavigationCompleteVibration : WayBandSDK.CustomVibration {
+  override final public func executeOneMotorVibration()
+  override final public func executeTwoMotorVibration()
+  required public init(peripheral: WayBandSDK.BluetoothPeripheral, isTwoMotorDevice: Swift.Bool)
+  @objc deinit
+}
+public protocol BlutoothVibration : WayBandSDK.Vibration {
+  var peripheral: WayBandSDK.BluetoothPeripheral { get }
+  var isTwoMotorDevice: Swift.Bool { get }
+  init(peripheral: WayBandSDK.BluetoothPeripheral, isTwoMotorDevice: Swift.Bool)
+}
+extension BluetoothPeripheral {
+  public enum ConnectionMode : Swift.Int {
+    case pinIO
+    case uart
+    case info
+    case controller
+    case dfu
+    public var services: [CoreBluetooth.CBUUID]? {
+      get
+    }
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  public enum Service {
+    case uart
+    case dfu
+    case deviceInformation
+    case battery
+    public var uuid: CoreBluetooth.CBUUID {
+      get
+    }
+    public static func == (a: WayBandSDK.BluetoothPeripheral.Service, b: WayBandSDK.BluetoothPeripheral.Service) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public enum Characteristic {
+    case tx
+    case rx
+    case pairingWrite
+    case pairingStatus
+    case battery
+    case voltage
+    public var uuid: CoreBluetooth.CBUUID {
+      get
+    }
+    public static func == (a: WayBandSDK.BluetoothPeripheral.Characteristic, b: WayBandSDK.BluetoothPeripheral.Characteristic) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public enum CommandMisc {
+    case removePairing
+    public var commandCode: Swift.String {
+      get
+    }
+    public static func == (a: WayBandSDK.BluetoothPeripheral.CommandMisc, b: WayBandSDK.BluetoothPeripheral.CommandMisc) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+extension Timer {
+  public static func scheduledCountdown(delay: Swift.Double, eachSecond: (() -> Swift.Void)? = nil, completion: @escaping () -> Swift.Void) -> Foundation.Timer
+  public static func scheduledCountdown(delay: Swift.Double, intervalDivider: Swift.Double, eachInterval: @escaping () -> Swift.Void, completion: @escaping () -> Swift.Void) -> Foundation.Timer
+}
+extension Timer {
+  public struct Constants {
+  }
+}
+extension Double {
+  public var angleFrom0To360Degress: Swift.Double {
+    get
+  }
+  public var positiveAngle: Swift.Double {
+    get
+  }
+  public func isAngleBetweenOrEqual(start: Swift.Double, end: Swift.Double) -> Swift.Bool
+  public func minMaxAngleDiff(min: Swift.Double, max: Swift.Double) -> Swift.Double
+}
+@_inheritsConvenienceInitializers @objc public class LegacyDFUServiceInitiator : WayBandSDK.DFUServiceInitiator {
+  @objc override public func start(targetWithIdentifier uuid: Foundation.UUID) -> WayBandSDK.DFUServiceController?
+  @available(*, deprecated)
+  @objc override public init(centralManager: CoreBluetooth.CBCentralManager, target: CoreBluetooth.CBPeripheral)
+  @objc override public init(queue: Dispatch.DispatchQueue? = super, delegateQueue: Dispatch.DispatchQueue = super, progressQueue: Dispatch.DispatchQueue = super, loggerQueue: Dispatch.DispatchQueue = super)
+  @objc deinit
+}
+@objc public class DFUServiceInitiator : ObjectiveC.NSObject {
+  @objc weak public var delegate: WayBandSDK.DFUServiceDelegate?
+  @objc weak public var progressDelegate: WayBandSDK.DFUProgressDelegate?
+  @objc weak public var logger: WayBandSDK.LoggerDelegate?
+  @objc public var peripheralSelector: WayBandSDK.DFUPeripheralSelectorDelegate
+  @objc public var packetReceiptNotificationParameter: Swift.UInt16
+  @objc public var forceDfu: Swift.Bool
+  @objc public var forceScanningForNewAddressInLegacyDfu: Swift.Bool
+  @objc public var connectionTimeout: Swift.Double
+  @objc public var dataObjectPreparationDelay: Swift.Double
+  @objc public var alternativeAdvertisingNameEnabled: Swift.Bool
+  @objc public var alternativeAdvertisingName: Swift.String?
+  @objc public var enableUnsafeExperimentalButtonlessServiceInSecureDfu: Swift.Bool
+  @objc public var uuidHelper: WayBandSDK.DFUUuidHelper
+  @objc public var disableResume: Swift.Bool
+  @available(*, deprecated, message: "Use init(queue: DispatchQueue?) instead.")
+  @objc public init(centralManager: CoreBluetooth.CBCentralManager, target: CoreBluetooth.CBPeripheral)
+  @objc public init(queue: Dispatch.DispatchQueue? = nil, delegateQueue: Dispatch.DispatchQueue = DispatchQueue.main, progressQueue: Dispatch.DispatchQueue = DispatchQueue.main, loggerQueue: Dispatch.DispatchQueue = DispatchQueue.main)
+  @objc public func with(firmware file: WayBandSDK.DFUFirmware) -> WayBandSDK.DFUServiceInitiator
+  @available(*, deprecated, message: "Use start(target: CBPeripheral) instead.")
+  @objc public func start() -> WayBandSDK.DFUServiceController?
+  @objc public func start(target: CoreBluetooth.CBPeripheral) -> WayBandSDK.DFUServiceController?
+  @objc public func start(targetWithIdentifier uuid: Foundation.UUID) -> WayBandSDK.DFUServiceController?
+  @objc override dynamic public init()
+  @objc deinit
+}
+public protocol DataConvertible {
+  static func + (lhs: Foundation.Data, rhs: Self) -> Foundation.Data
+  static func += (lhs: inout Foundation.Data, rhs: Self)
+}
+extension DataConvertible {
+  public static func + (lhs: Foundation.Data, rhs: Self) -> Foundation.Data
+  public static func += (lhs: inout Foundation.Data, rhs: Self)
+}
+extension UInt8 : WayBandSDK.DataConvertible {
+}
+extension UInt16 : WayBandSDK.DataConvertible {
+}
+extension UInt32 : WayBandSDK.DataConvertible {
+}
+extension Int : WayBandSDK.DataConvertible {
+}
+extension Float : WayBandSDK.DataConvertible {
+}
+extension Double : WayBandSDK.DataConvertible {
+}
+extension String : WayBandSDK.DataConvertible {
+  public static func + (lhs: Foundation.Data, rhs: Swift.String) -> Foundation.Data
+}
+extension Data : WayBandSDK.DataConvertible {
+  public static func + (lhs: Foundation.Data, rhs: Foundation.Data) -> Foundation.Data
+}
+extension Unicode.Scalar {
+  public var hexNibble: Swift.UInt8 {
+    get
+  }
+}
+@objc public protocol DFUPeripheralSelectorDelegate {
+  @objc func select(_ peripheral: CoreBluetooth.CBPeripheral, advertisementData: [Swift.String : Swift.AnyObject], RSSI: Foundation.NSNumber, hint name: Swift.String?) -> Swift.Bool
+  @objc func filterBy(hint dfuServiceUUID: CoreBluetooth.CBUUID) -> [CoreBluetooth.CBUUID]?
+}
+public protocol BluetoothPeripheralDelegate : AnyObject {
+  var connectionMode: WayBandSDK.BluetoothPeripheral.ConnectionMode { get }
+  func didFinalizeConnection(for peripheral: WayBandSDK.BluetoothPeripheral)
+  func didReceive(data: Foundation.Data, on peripheral: WayBandSDK.BluetoothPeripheral)
+  func closeConnection(for peripheral: WayBandSDK.BluetoothPeripheral)
+}
+@objc @_hasMissingDesignatedInitializers public class BluetoothPeripheral : ObjectiveC.NSObject {
+  public var isExecutingCustomVibration: Swift.Bool
+  weak public var delegate: WayBandSDK.BluetoothPeripheralDelegate?
+  public var timer: Foundation.Timer?
+  public var calibrationSignalTimer: Foundation.Timer?
+  public var characteristics: [WayBandSDK.BluetoothPeripheral.Characteristic : CoreBluetooth.CBCharacteristic]
+  public var services: [CoreBluetooth.CBService]
+  public var uartService: CoreBluetooth.CBService?
+  public var iniatedConnection: Swift.Bool
+  public var alertController: UIKit.UIAlertController?
+  public var peripheral: CoreBluetooth.CBPeripheral {
+    get
+  }
+  public var identifier: Swift.String {
+    get
+  }
+  public var name: Swift.String? {
+    get
+  }
+  public var state: CoreBluetooth.CBPeripheralState {
+    get
+  }
+  public func getBatteryCharacteristics() -> CoreBluetooth.CBCharacteristic?
+  @objc deinit
+  public func didConnect(with mode: WayBandSDK.BluetoothPeripheral.ConnectionMode)
+  public func didDisconnect(with mode: WayBandSDK.BluetoothPeripheral.ConnectionMode)
+  public func vibrate(using pattern: WayBandSDK.VibrationPattern, on motor: WayBandSDK.BluetoothPeripheral.Motor?, forceVibration: Swift.Bool)
+  public func vibrate(using pattern: WayBandSDK.CustomVibrationPattern, isTwoMotorDevice: Swift.Bool)
+  public func stopVibrations(isTwoMotorDevice: Swift.Bool = true)
+  public func removeWaybandPairing()
+  @objc override dynamic public init()
+}
+extension BluetoothPeripheral : CoreBluetooth.CBPeripheralDelegate {
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didDiscoverServices error: Swift.Error?)
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didDiscoverCharacteristicsFor service: CoreBluetooth.CBService, error: Swift.Error?)
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didDiscoverDescriptorsFor characteristic: CoreBluetooth.CBCharacteristic, error: Swift.Error?)
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didUpdateValueFor characteristic: CoreBluetooth.CBCharacteristic, error: Swift.Error?)
+}
+extension BluetoothPeripheral {
+  public func presentPairingNotAllowedAlert()
+  public func writeToSerial(string: Swift.String)
+  public func writeToSerial(data: Foundation.Data)
+  public func writePairingID(string: Swift.String)
+  public func writePairingID(data: Foundation.Data)
+}
+extension BluetoothPeripheral {
+  public struct Constants {
+    public init()
+    public static let calibrationSignalDuration: Swift.Double
+    public static let divider: Swift.Double
+    public static let strengthMultiplier: Swift.Int
+    public static let calibrationInterval: Swift.Double
+  }
+}
+extension CBCharacteristic {
+  public var writeType: CoreBluetooth.CBCharacteristicWriteType? {
+    get
+  }
+}
+extension Archive {
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func extract(_ entry: WayBandSDK.Entry, to url: Foundation.URL, bufferSize: Swift.UInt32, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil) throws -> WayBandSDK.CRC32
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func extract(_ entry: WayBandSDK.Entry, bufferSize: Swift.UInt32, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil, consumer: (Foundation.Data) throws -> Swift.Void) throws -> WayBandSDK.CRC32
+}
+@objc @_inheritsConvenienceInitializers public class IntelHex2BinConverter : ObjectiveC.NSObject {
+  public static func convert(_ hex: Foundation.Data, mbrSize: Swift.UInt32 = 0) -> Foundation.Data?
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension Archive {
+}
+public struct Entry : Swift.Equatable {
+  public enum EntryType : Swift.Int {
+    case file
+    case directory
+    case symlink
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  public func path(using encoding: Swift.String.Encoding) -> Swift.String
+  public var path: Swift.String {
+    get
+  }
+  public var fileAttributes: [Foundation.FileAttributeKey : Any] {
+    get
+  }
+  public var checksum: WayBandSDK.CRC32 {
+    get
+  }
+  public var type: WayBandSDK.Entry.EntryType {
+    get
+  }
+  public var compressedSize: Swift.UInt64 {
+    get
+  }
+  public var uncompressedSize: Swift.UInt64 {
+    get
+  }
+  public static func == (lhs: WayBandSDK.Entry, rhs: WayBandSDK.Entry) -> Swift.Bool
+}
+public enum BluetoothPairingStep : Swift.Int {
+  case welcome
+  case prepareToConnect
+  case pairing
+  case connected
+  case firstFailure
+  case anotherFailure
+  public var buttonTitle: Swift.String {
+    get
+  }
+  public mutating func next()
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum DFUTestError : Swift.Error {
+  case fileNotFound
+  case invalidFirmware
+  public static func == (a: WayBandSDK.DFUTestError, b: WayBandSDK.DFUTestError) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public typealias AdvertisingData = [Swift.String : Any]
+public typealias Filter = (WayBandSDK.AdvertisingData) -> Swift.Bool
+public typealias ServiceModifier = (WayBandSDK.DFUServiceInitiator) -> ()
+public protocol DFUTestSet {
+  var steps: [(firmware: WayBandSDK.DFUFirmware, options: WayBandSDK.ServiceModifier?, expectedError: WayBandSDK.DFUError?, description: Swift.String, next: WayBandSDK.Filter?)]? { get }
+}
+extension DFUTestSet {
+  public var totalParts: Swift.Int {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers public class FilterBy {
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class Option {
+  public static let prn: (Swift.UInt16) -> WayBandSDK.ServiceModifier
+  public static let experimentalButtonlessEnabled: (WayBandSDK.DFUServiceInitiator) -> ()
+  @objc deinit
+}
+extension DFUFirmware {
+  public static func from(zip name: Swift.String, locatedIn subdirectory: Swift.String) throws -> WayBandSDK.DFUFirmware
+  public static func from(zip name: Swift.String, locatedIn subdirectory: Swift.String, withType type: WayBandSDK.DFUFirmwareType) throws -> WayBandSDK.DFUFirmware
+  public static func fromCustomZip() throws -> WayBandSDK.DFUFirmware
+}
+@_hasMissingDesignatedInitializers @objc open class DFUFirmwareSize : ObjectiveC.NSObject {
+  @objc open var softdevice: Swift.UInt32 {
+    get
+  }
+  @objc open var bootloader: Swift.UInt32 {
+    get
+  }
+  @objc open var application: Swift.UInt32 {
+    get
+  }
+  @objc override dynamic public init()
+  @objc deinit
+}
+public protocol Vibration {
+  func execute(delay: Foundation.TimeInterval)
+}
+@objc @_inheritsConvenienceInitializers public class VibrationManager : ObjectiveC.NSObject {
+  public var useCoreHaptics: Swift.Bool
+  public var engine: CoreHaptics.CHHapticEngine?
+  public var player: CoreHaptics.CHHapticAdvancedPatternPlayer?
+  public var hapticStatus: Swift.Bool {
+    get
+    set
+  }
+  public var priority: Swift.Int {
+    get
+    set
+  }
+  final public let shortDuration: Swift.Double
+  final public let shortSpace: Swift.Double
+  final public let longSpace: Swift.Double
+  final public let signalSpace: Swift.Double
+  final public let longDurationLeft: Swift.Double
+  final public let longDurationRight: Swift.Double
+  final public let wrongDuration: Swift.Double
+  final public let intensity: Swift.Float
+  final public let sharpness: Swift.Float
+  final public let deviceIntencity: Swift.Int
+  final public let completionTimeout: Swift.Double
+  public enum State {
+    case vibrateOniPhone
+    case vibrateOnDevice(WayBandSDK.BluetoothPeripheral)
+    case error(error: Swift.String)
+  }
+  public static let shared: WayBandSDK.VibrationManager
+  public var previousState: WayBandSDK.VibrationManager.State {
+    get
+    set
+  }
+  public var state: WayBandSDK.VibrationManager.State {
+    get
+  }
+  public var status: WayBandSDK.VibrationManager.State {
+    get
+  }
+  @objc override dynamic public init()
+  public func prepareHaptics()
+  public func vibrate(using pattern: WayBandSDK.VibrationPattern, on motor: WayBandSDK.BluetoothPeripheral.Motor? = nil, forceVibration: Swift.Bool = false)
+  public func vibrateWaybandDevice(using pattern: WayBandSDK.VibrationPattern, on motor: WayBandSDK.BluetoothPeripheral.Motor? = nil, forceVibration: Swift.Bool = false)
+  public func vibratePeripheral(using pattern: WayBandSDK.CustomVibrationPattern, peripheral: WayBandSDK.BluetoothPeripheral, parameters: [Swift.String : Any]?)
+  public func vibrateOniPhone(using pattern: WayBandSDK.CustomVibrationPattern, parameters: [Swift.String : Any]?)
+  public func reset()
+  public func vibrate(using pattern: WayBandSDK.CustomVibrationPattern, parameters: [Swift.String : Any]?)
+  public func stopVibration(pattern: WayBandSDK.VibrationPattern)
+  public func stopVibrationOniPhone()
+  public func stopAllVibration()
+  public func stopConstantVibrations()
+  public func CreateCustomHaptic(peripheral: WayBandSDK.BluetoothPeripheral, paramters: [Swift.String : Any])
+  public func finishVibrating(delay: Swift.Double)
+  public func wrongDirection(peripheral: WayBandSDK.BluetoothPeripheral, parameters: [Swift.String : Any])
+  public func leftDetectionOniPhone()
+  public func wrongDirectionOniPhone(eventType: Swift.String, relativeTime: Swift.Double, duration: Swift.Double)
+  public func rightDetectionOniPhone()
+  public func cancelHaptics()
+  public func playHapticLevels(event: CoreHaptics.CHHapticEvent)
+  public func wrongDirectionLevelVibration(shouldVibrate: Swift.Bool, intensityValue: Swift.Float)
+  @objc deinit
+}
+extension BluetoothPeripheral {
+  public enum Motor {
+    case none
+    case left
+    case right
+    case both
+    public var motorHex: Swift.String {
+      get
+    }
+    public static func == (a: WayBandSDK.BluetoothPeripheral.Motor, b: WayBandSDK.BluetoothPeripheral.Motor) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public class PhoneDevice {
+  public enum NativeVibrationStrength {
+    case strong
+    case weak
+    public var value: AudioToolbox.SystemSoundID {
+      get
+    }
+    public static func == (a: WayBandSDK.PhoneDevice.NativeVibrationStrength, b: WayBandSDK.PhoneDevice.NativeVibrationStrength) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public static let shared: WayBandSDK.PhoneDevice
+  public var timer: Foundation.Timer?
+  public var currentNativeVibration: WayBandSDK.PhoneDevice.NativeVibrationStrength?
+  public init()
+  public func vibrate(using pattern: WayBandSDK.VibrationPattern)
+  public func stopVibrating(_ pattern: WayBandSDK.VibrationPattern)
+  @objc deinit
+}
+extension PhoneDevice {
+  public struct Constants {
+    public init()
+    public static let vibrationInterval: Swift.Double
+    public static let calibrationInterval: Swift.Double
+    public static let weakVibrationId: AudioToolbox.SystemSoundID
+  }
+}
+public protocol demo : AnyObject {
+  func dOta(val: Swift.String)
+}
+public class DemoOTA {
+  public var demoDelegate: WayBandSDK.demo?
+  public init()
+  public func fd()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc open class DFUPeripheralSelector : ObjectiveC.NSObject, WayBandSDK.DFUPeripheralSelectorDelegate {
+  @objc open func select(_ peripheral: CoreBluetooth.CBPeripheral, advertisementData: [Swift.String : Swift.AnyObject], RSSI: Foundation.NSNumber, hint name: Swift.String? = nil) -> Swift.Bool
+  @objc open func filterBy(hint dfuServiceUUID: CoreBluetooth.CBUUID) -> [CoreBluetooth.CBUUID]?
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public enum DFUUuidType : Swift.Int {
+  case legacyService = 0
+  case legacyControlPoint = 1
+  case legacyPacket = 2
+  case legacyVersion = 3
+  case secureService = 4
+  case secureControl = 5
+  case securePacket = 6
+  case buttonlessService = 7
+  case buttonlessCharacteristic = 8
+  case buttonlessWithoutBondSharing = 9
+  case buttonlessWithBondSharing = 10
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public class DFUUuid : ObjectiveC.NSObject {
+  @objc final public let uuid: CoreBluetooth.CBUUID
+  @objc final public let type: WayBandSDK.DFUUuidType
+  @objc public init(withUUID: CoreBluetooth.CBUUID, forType: WayBandSDK.DFUUuidType)
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class DFUUuidHelper : ObjectiveC.NSObject {
+  @objc public var legacyDFUService: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var legacyDFUControlPoint: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var legacyDFUPacket: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var legacyDFUVersion: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var secureDFUService: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var secureDFUControlPoint: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var secureDFUPacket: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessExperimentalService: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessExperimentalCharacteristic: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessWithoutBonds: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessWithBonds: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc override dynamic public init()
+  @objc convenience public init(customUuids uuids: [WayBandSDK.DFUUuid])
+  @objc deinit
+}
+public enum CustomVibrationPattern {
+  case leftTurn
+  case rightTurn
+  case navigationComplete
+  public static func == (a: WayBandSDK.CustomVibrationPattern, b: WayBandSDK.CustomVibrationPattern) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@objc public enum LogLevel : Swift.Int {
+  case debug = 0
+  case verbose = 1
+  case info = 5
+  case application = 10
+  case warning = 15
+  case error = 20
+  public func name() -> Swift.String
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public protocol LoggerDelegate {
+  @objc func logWith(_ level: WayBandSDK.LogLevel, message: Swift.String)
+}
+extension Data {
+  @available(*, deprecated, message: "Please use `Int64` for `size` and provider `position`.")
+  public static func compress(size: Swift.Int, bufferSize: Swift.Int, provider: (Swift.Int, Swift.Int) throws -> Foundation.Data, consumer: (Foundation.Data) throws -> Swift.Void) throws -> WayBandSDK.CRC32
+  @available(*, deprecated, message: "Please use `Int64` for `size` and provider `position`.")
+  public static func decompress(size: Swift.Int, bufferSize: Swift.Int, skipCRC32: Swift.Bool, provider: (Swift.Int, Swift.Int) throws -> Foundation.Data, consumer: (Foundation.Data) throws -> Swift.Void) throws -> WayBandSDK.CRC32
+}
+public enum VibrationPattern {
+  case constant(percentageStrength: WayBandSDK.PercentageStrength)
+  case buzz(count: Swift.Int, percentageStrength: WayBandSDK.PercentageStrength, duration: WayBandSDK.Milliseconds, spacing: WayBandSDK.Milliseconds)
+  case deviceConnected
+  case calibrating
+  case calibrationComplete
+  case waypointAcquired
+}
+extension Int {
+  public var hexValue: Swift.String {
+    get
+  }
+  public func hexValue(format: Swift.String) -> Swift.String
+}
+public protocol WaybandBleServicesViewDelegate : AnyObject {
+  func waybandBleGetBattery(val: Swift.String)
+  func waybandBleGetFirmware(val: Swift.String)
+  func waybandBleGetHardware(val: Swift.String)
+  func waybandBleSerialNo(val: Swift.String)
+  func waybandBleGetVoltage(val: Swift.String)
+  func waybandBlePairingStatus(val: Swift.String)
+}
+@objc @_hasMissingDesignatedInitializers public class WaybandBleServices : UIKit.UIView {
+  weak public var delegate: WayBandSDK.WaybandBleServicesViewDelegate?
+  public var centralManager: CoreBluetooth.CBCentralManager
+  public var peripheral: CoreBluetooth.CBPeripheral!
+  @objc dynamic public init()
+  public func setupServices(with centralManager: CoreBluetooth.CBCentralManager, peripheral: CoreBluetooth.CBPeripheral)
+  @objc override dynamic public init(frame: CoreGraphics.CGRect)
+  @objc deinit
+}
+extension WaybandBleServices : CoreBluetooth.CBPeripheralDelegate {
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didDiscoverServices error: Swift.Error?)
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didDiscoverCharacteristicsFor service: CoreBluetooth.CBService, error: Swift.Error?)
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didUpdateValueFor characteristic: CoreBluetooth.CBCharacteristic, error: Swift.Error?)
+}
+public struct PercentageStrength {
+  public let rawValue: Swift.Int
+  public let volume: Swift.Int
+  public var value: Swift.Int {
+    get
+  }
+  public var percentValue: Swift.Int {
+    get
+  }
+  public var hexValue: Swift.String {
+    get
+  }
+  public init(_ rawValue: Swift.Int)
+  public init()
+}
+extension PercentageStrength : Swift.ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: Swift.Int)
+  public typealias IntegerLiteralType = Swift.Int
+}
+public struct Milliseconds {
+  public let rawValue: Swift.Int
+  public var hexValue: Swift.String {
+    get
+  }
+}
+extension Milliseconds : Swift.ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: Swift.Int)
+  public typealias IntegerLiteralType = Swift.Int
+}
+extension Archive {
+  final public func totalUnitCountForRemoving(_ entry: WayBandSDK.Entry) -> Swift.Int64
+  final public func totalUnitCountForReading(_ entry: WayBandSDK.Entry) -> Swift.Int64
+  final public func totalUnitCountForAddingItem(at url: Foundation.URL) -> Swift.Int64
+}
+@objc public enum DFUError : Swift.Int {
+  case remoteLegacyDFUSuccess = 1
+  case remoteLegacyDFUInvalidState = 2
+  case remoteLegacyDFUNotSupported = 3
+  case remoteLegacyDFUDataExceedsLimit = 4
+  case remoteLegacyDFUCrcError = 5
+  case remoteLegacyDFUOperationFailed = 6
+  case remoteSecureDFUSuccess = 11
+  case remoteSecureDFUOpCodeNotSupported = 12
+  case remoteSecureDFUInvalidParameter = 13
+  case remoteSecureDFUInsufficientResources = 14
+  case remoteSecureDFUInvalidObject = 15
+  case remoteSecureDFUSignatureMismatch = 16
+  case remoteSecureDFUUnsupportedType = 17
+  case remoteSecureDFUOperationNotPermitted = 18
+  case remoteSecureDFUOperationFailed = 20
+  case remoteSecureDFUExtendedError = 21
+  case remoteExtendedErrorWrongCommandFormat = 22
+  case remoteExtendedErrorUnknownCommand = 23
+  case remoteExtendedErrorInitCommandInvalid = 24
+  case remoteExtendedErrorFwVersionFailure = 25
+  case remoteExtendedErrorHwVersionFailure = 26
+  case remoteExtendedErrorSdVersionFailure = 27
+  case remoteExtendedErrorSignatureMissing = 28
+  case remoteExtendedErrorWrongHashType = 29
+  case remoteExtendedErrorHashFailed = 30
+  case remoteExtendedErrorWrongSignatureType = 31
+  case remoteExtendedErrorVerificationFailed = 32
+  case remoteExtendedErrorInsufficientSpace = 33
+  case remoteExperimentalButtonlessDFUSuccess = 9001
+  case remoteExperimentalButtonlessDFUOpCodeNotSupported = 9002
+  case remoteExperimentalButtonlessDFUOperationFailed = 9004
+  case remoteButtonlessDFUSuccess = 91
+  case remoteButtonlessDFUOpCodeNotSupported = 92
+  case remoteButtonlessDFUOperationFailed = 94
+  case remoteButtonlessDFUInvalidAdvertisementName = 95
+  case remoteButtonlessDFUBusy = 96
+  case remoteButtonlessDFUNotBonded = 97
+  case fileNotSpecified = 101
+  case fileInvalid = 102
+  case extendedInitPacketRequired = 103
+  case initPacketRequired = 104
+  case failedToConnect = 201
+  case deviceDisconnected = 202
+  case bluetoothDisabled = 203
+  case serviceDiscoveryFailed = 301
+  case deviceNotSupported = 302
+  case readingVersionFailed = 303
+  case enablingControlPointFailed = 304
+  case writingCharacteristicFailed = 305
+  case receivingNotificationFailed = 306
+  case unsupportedResponse = 307
+  case bytesLost = 308
+  case crcError = 309
+  case invalidInternalState = 500
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public enum DFUState : Swift.Int {
+  case connecting
+  case starting
+  case enablingDfuMode
+  case uploading
+  case validating
+  case disconnecting
+  case completed
+  case aborted
+  public func description() -> Swift.String
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public protocol DFUProgressDelegate {
+  @objc func dfuProgressDidChange(for part: Swift.Int, outOf totalParts: Swift.Int, to progress: Swift.Int, currentSpeedBytesPerSecond: Swift.Double, avgSpeedBytesPerSecond: Swift.Double)
+}
+@objc public protocol DFUServiceDelegate {
+  @objc func dfuStateDidChange(to state: WayBandSDK.DFUState)
+  @objc func dfuError(_ error: WayBandSDK.DFUError, didOccurWithMessage message: Swift.String)
+}
+@objc @_inheritsConvenienceInitializers public class DFUFirmwareClass : ObjectiveC.NSObject, CoreBluetooth.CBCentralManagerDelegate, WayBandSDK.DFUServiceDelegate, WayBandSDK.LoggerDelegate, WayBandSDK.DFUProgressDelegate {
+  public func stopProcessButtonTapped(completion: () -> ())
+  public func setCentralManager(_ centralManager: CoreBluetooth.CBCentralManager)
+  public func setTargetPeripheral(_ targetPeripheral: CoreBluetooth.CBPeripheral, withName name: Swift.String?)
+  public func prepareBle()
+  public func initializeFirmware(fw: Swift.String?)
+  public func abortTimer()
+  @objc public func centralManagerDidUpdateState(_ central: CoreBluetooth.CBCentralManager)
+  @objc public func centralManager(_ central: CoreBluetooth.CBCentralManager, didDiscover peripheral: CoreBluetooth.CBPeripheral, advertisementData: [Swift.String : Any], rssi RSSI: Foundation.NSNumber)
+  @objc public func dfuStateDidChange(to state: WayBandSDK.DFUState)
+  @objc public func dfuError(_ error: WayBandSDK.DFUError, didOccurWithMessage message: Swift.String)
+  @objc public func dfuProgressDidChange(for part: Swift.Int, outOf totalParts: Swift.Int, to progress: Swift.Int, currentSpeedBytesPerSecond: Swift.Double, avgSpeedBytesPerSecond: Swift.Double)
+  @objc public func logWith(_ level: WayBandSDK.LogLevel, message: Swift.String)
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension VibrationPattern {
+  public var commandHex: Swift.String {
+    get
+  }
+  public var nullTerminator: Swift.String {
+    get
+  }
+}
+public let defaultReadChunkSize: Swift.Int
+public let defaultWriteChunkSize: Swift.Int
+public let defaultFilePermissions: Swift.UInt16
+public let defaultDirectoryPermissions: Swift.UInt16
+final public class Archive : Swift.Sequence {
+  public enum ArchiveError : Swift.Error {
+    case unreadableArchive
+    case unwritableArchive
+    case invalidEntryPath
+    case invalidCompressionMethod
+    case cancelledOperation
+    case invalidBufferSize
+    case invalidEntrySize
+    case invalidLocalHeaderDataOffset
+    case invalidLocalHeaderSize
+    case invalidCentralDirectoryOffset
+    case invalidCentralDirectorySize
+    case invalidCentralDirectoryEntryCount
+    case missingEndOfCentralDirectoryRecord
+    public static func == (a: WayBandSDK.Archive.ArchiveError, b: WayBandSDK.Archive.ArchiveError) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public enum AccessMode : Swift.UInt {
+    case create
+    case read
+    case update
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  final public let url: Foundation.URL
+  final public let accessMode: WayBandSDK.Archive.AccessMode
+  public init?(url: Foundation.URL, accessMode mode: WayBandSDK.Archive.AccessMode, preferredEncoding: Swift.String.Encoding? = nil)
+  public init?(data: Foundation.Data = Data(), accessMode mode: WayBandSDK.Archive.AccessMode, preferredEncoding: Swift.String.Encoding? = nil)
+  @objc deinit
+  final public func makeIterator() -> Swift.AnyIterator<WayBandSDK.Entry>
+  final public subscript(path: Swift.String) -> WayBandSDK.Entry? {
+    get
+  }
+  public typealias Element = WayBandSDK.Entry
+  public typealias Iterator = Swift.AnyIterator<WayBandSDK.Entry>
+}
+extension FileManager {
+  public func zipItem(at sourceURL: Foundation.URL, to destinationURL: Foundation.URL, shouldKeepParent: Swift.Bool = true, compressionMethod: WayBandSDK.CompressionMethod = .none, progress: Foundation.Progress? = nil) throws
+  public func unzipItem(at sourceURL: Foundation.URL, to destinationURL: Foundation.URL, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil, preferredEncoding: Swift.String.Encoding? = nil) throws
+}
+extension URL {
+  public func isContained(in parentDirectoryURL: Foundation.URL) -> Swift.Bool
+}
+@objc public enum DFUFirmwareType : Swift.UInt8 {
+  case softdevice = 1
+  case bootloader = 2
+  case application = 4
+  case softdeviceBootloader = 3
+  case softdeviceBootloaderApplication = 7
+  public init?(rawValue: Swift.UInt8)
+  public typealias RawValue = Swift.UInt8
+  public var rawValue: Swift.UInt8 {
+    get
+  }
+}
+@objc public class DFUFirmware : ObjectiveC.NSObject {
+  @objc final public let fileName: Swift.String?
+  @objc final public let fileUrl: Foundation.URL?
+  @objc public var valid: Swift.Bool {
+    @objc get
+  }
+  @objc public var size: WayBandSDK.DFUFirmwareSize {
+    @objc get
+  }
+  @objc public var parts: Swift.Int {
+    @objc get
+  }
+  @objc convenience public init?(urlToZipFile: Foundation.URL)
+  @objc public init?(urlToZipFile: Foundation.URL, type: WayBandSDK.DFUFirmwareType)
+  @objc convenience public init?(zipFile: Foundation.Data)
+  @objc public init?(zipFile: Foundation.Data, type: WayBandSDK.DFUFirmwareType)
+  @objc public init?(urlToBinOrHexFile: Foundation.URL, urlToDatFile: Foundation.URL?, type: WayBandSDK.DFUFirmwareType)
+  @objc public init?(binFile: Foundation.Data, datFile: Foundation.Data?, type: WayBandSDK.DFUFirmwareType)
+  @objc public init?(hexFile: Foundation.Data, datFile: Foundation.Data?, type: WayBandSDK.DFUFirmwareType)
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension NSNotification.Name {
+  public static let bluetoothManagerDidUpdateState: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidStartScanningForDevices: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidStopScanningForDevices: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidDiscoverPeripheral: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidConnectToPeripheral: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidDisconnectFromPeripheral: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidGotVersionInfo: Foundation.NSNotification.Name
+  public static let bluetoothManagerDidGotBatteryVoltage: Foundation.NSNotification.Name
+}
+@objc @_inheritsConvenienceInitializers public class BluetoothManager : ObjectiveC.NSObject {
+  public enum Updates {
+    case manually
+    case automatically
+    public static func == (a: WayBandSDK.BluetoothManager.Updates, b: WayBandSDK.BluetoothManager.Updates) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public static let shared: WayBandSDK.BluetoothManager
+  final public let manager: CoreBluetooth.CBCentralManager
+  public var connectedPeripheral: WayBandSDK.BluetoothPeripheral? {
+    get
+  }
+  public var connectedCBPeripheral: CoreBluetooth.CBPeripheral? {
+    get
+  }
+  public var deviceScanningTimeout: Swift.Double
+  public var deviceScanningTimer: Foundation.Timer?
+  public var discoveredPeripherals: Swift.Set<CoreBluetooth.CBPeripheral>
+  public var state: CoreBluetooth.CBManagerState {
+    get
+  }
+  public var canAutomaticallyConnectWithDevice: Swift.Bool {
+    get
+  }
+  public var discoveredPeripheralsArray: [WayBandSDK.BluetoothPeripheral] {
+    get
+  }
+  public var updatesMode: WayBandSDK.BluetoothManager.Updates {
+    get
+    set
+  }
+  public var isScanningForDevices: Swift.Bool {
+    get
+    set
+  }
+  @objc override dynamic public init()
+  public func scanForDevices()
+  @objc public func stopScanningForDevices()
+  @objc public func stopScanningAfterPairing()
+  @objc public func stopScanningPairingError()
+  public func connect(to peripheral: WayBandSDK.BluetoothPeripheral)
+  public func disconnect()
+  public func disconnectOnError()
+  public func readBattery()
+  @objc deinit
+}
+extension BluetoothManager : CoreBluetooth.CBCentralManagerDelegate {
+  @objc dynamic public func centralManagerDidUpdateState(_ central: CoreBluetooth.CBCentralManager)
+  @objc dynamic public func centralManager(_ central: CoreBluetooth.CBCentralManager, didDiscover peripheral: CoreBluetooth.CBPeripheral, advertisementData: [Swift.String : Any], rssi RSSI: Foundation.NSNumber)
+  @objc dynamic public func centralManager(_ central: CoreBluetooth.CBCentralManager, didConnect peripheral: CoreBluetooth.CBPeripheral)
+  @objc dynamic public func centralManager(_ central: CoreBluetooth.CBCentralManager, didFailToConnect peripheral: CoreBluetooth.CBPeripheral, error: Swift.Error?)
+}
+extension BluetoothManager : CoreBluetooth.CBPeripheralDelegate {
+  @objc dynamic public func centralManager(_ central: CoreBluetooth.CBCentralManager, didDisconnectPeripheral peripheral: CoreBluetooth.CBPeripheral, error: Swift.Error?)
+}
+extension BluetoothManager : WayBandSDK.BluetoothPeripheralDelegate {
+  public var connectionMode: WayBandSDK.BluetoothPeripheral.ConnectionMode {
+    get
+  }
+  public func didFinalizeConnection(for peripheral: WayBandSDK.BluetoothPeripheral)
+  public func closeConnection(for peripheral: WayBandSDK.BluetoothPeripheral)
+  public func didReceive(data: Foundation.Data, on peripheral: WayBandSDK.BluetoothPeripheral)
+  @objc dynamic public func peripheral(_ peripheral: CoreBluetooth.CBPeripheral, didUpdateValueFor characteristic: CoreBluetooth.CBCharacteristic, error: Swift.Error?)
+}
+extension BluetoothManager {
+  public func updatesModeDidChange()
+}
+public enum CompressionMethod : Swift.UInt16 {
+  case none
+  case deflate
+  public init?(rawValue: Swift.UInt16)
+  public typealias RawValue = Swift.UInt16
+  public var rawValue: Swift.UInt16 {
+    get
+  }
+}
+public typealias CRC32 = Swift.UInt32
+public typealias Consumer = (Foundation.Data) throws -> Swift.Void
+public typealias Provider = (Swift.Int64, Swift.Int) throws -> Foundation.Data
+extension Data {
+  public func crc32(checksum: WayBandSDK.CRC32) -> WayBandSDK.CRC32
+  public static func compress(size: Swift.Int64, bufferSize: Swift.Int, provider: (Swift.Int64, Swift.Int) throws -> Foundation.Data, consumer: (Foundation.Data) throws -> Swift.Void) throws -> WayBandSDK.CRC32
+  public static func decompress(size: Swift.Int64, bufferSize: Swift.Int, skipCRC32: Swift.Bool, provider: (Swift.Int64, Swift.Int) throws -> Foundation.Data, consumer: (Foundation.Data) throws -> Swift.Void) throws -> WayBandSDK.CRC32
+}
+extension Archive {
+  final public func extract(_ entry: WayBandSDK.Entry, to url: Foundation.URL, bufferSize: Swift.Int = defaultReadChunkSize, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil) throws -> WayBandSDK.CRC32
+  final public func extract(_ entry: WayBandSDK.Entry, bufferSize: Swift.Int = defaultReadChunkSize, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil, consumer: (Foundation.Data) throws -> Swift.Void) throws -> WayBandSDK.CRC32
+}
+extension CustomVibrationPattern {
+  public func make(for peripheral: WayBandSDK.BluetoothPeripheral, isTwoMotorDevice: Swift.Bool = true) -> WayBandSDK.Vibration
+}
+extension Archive {
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func addEntry(with path: Swift.String, relativeTo baseURL: Foundation.URL, compressionMethod: WayBandSDK.CompressionMethod = .none, bufferSize: Swift.UInt32, progress: Foundation.Progress? = nil) throws
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func addEntry(with path: Swift.String, fileURL: Foundation.URL, compressionMethod: WayBandSDK.CompressionMethod = .none, bufferSize: Swift.UInt32, progress: Foundation.Progress? = nil) throws
+  @available(*, deprecated, message: "Please use `Int64` for `uncompressedSize` and provider `position`. `Int` for `bufferSize`.")
+  final public func addEntry(with path: Swift.String, type: WayBandSDK.Entry.EntryType, uncompressedSize: Swift.UInt32, modificationDate: Foundation.Date = Date(), permissions: Swift.UInt16? = nil, compressionMethod: WayBandSDK.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil, provider: (Swift.Int, Swift.Int) throws -> Foundation.Data) throws
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func remove(_ entry: WayBandSDK.Entry, bufferSize: Swift.UInt32, progress: Foundation.Progress? = nil) throws
+}
+@_inheritsConvenienceInitializers @objc public class SecureDFUServiceInitiator : WayBandSDK.DFUServiceInitiator {
+  @objc override public func start(targetWithIdentifier uuid: Foundation.UUID) -> WayBandSDK.DFUServiceController?
+  @available(*, deprecated)
+  @objc override public init(centralManager: CoreBluetooth.CBCentralManager, target: CoreBluetooth.CBPeripheral)
+  @objc override public init(queue: Dispatch.DispatchQueue? = super, delegateQueue: Dispatch.DispatchQueue = super, progressQueue: Dispatch.DispatchQueue = super, loggerQueue: Dispatch.DispatchQueue = super)
+  @objc deinit
+}
+public class DFUFirmwareProvider {
+  public var index: Swift.Int
+  final public let count: Swift.Int
+  final public let totalParts: Swift.Int
+  public var getFirmware: WayBandSDK.DFUFirmware?
+  public init(testSet: WayBandSDK.DFUTestSet)
+  @objc deinit
+  public var firmware: WayBandSDK.DFUFirmware? {
+    get
+  }
+  public var description: Swift.String? {
+    get
+  }
+  public var expectedError: WayBandSDK.DFUError? {
+    get
+  }
+  public func applyModifier(to initiator: WayBandSDK.DFUServiceInitiator)
+  public var filter: WayBandSDK.Filter? {
+    get
+  }
+  public func hasNext() -> Swift.Bool
+  public func next()
+  public static func get(byName name: Swift.String?) -> WayBandSDK.DFUFirmwareProvider
+}
+extension WayBandSDK.BluetoothPeripheral.ConnectionMode : Swift.Equatable {}
+extension WayBandSDK.BluetoothPeripheral.ConnectionMode : Swift.Hashable {}
+extension WayBandSDK.BluetoothPeripheral.ConnectionMode : Swift.RawRepresentable {}
+extension WayBandSDK.BluetoothPeripheral.Service : Swift.Equatable {}
+extension WayBandSDK.BluetoothPeripheral.Service : Swift.Hashable {}
+extension WayBandSDK.BluetoothPeripheral.Characteristic : Swift.Equatable {}
+extension WayBandSDK.BluetoothPeripheral.Characteristic : Swift.Hashable {}
+extension WayBandSDK.BluetoothPeripheral.CommandMisc : Swift.Equatable {}
+extension WayBandSDK.BluetoothPeripheral.CommandMisc : Swift.Hashable {}
+extension WayBandSDK.Entry.EntryType : Swift.Equatable {}
+extension WayBandSDK.Entry.EntryType : Swift.Hashable {}
+extension WayBandSDK.Entry.EntryType : Swift.RawRepresentable {}
+extension WayBandSDK.BluetoothPairingStep : Swift.Equatable {}
+extension WayBandSDK.BluetoothPairingStep : Swift.Hashable {}
+extension WayBandSDK.BluetoothPairingStep : Swift.RawRepresentable {}
+extension WayBandSDK.DFUTestError : Swift.Equatable {}
+extension WayBandSDK.DFUTestError : Swift.Hashable {}
+extension WayBandSDK.BluetoothPeripheral.Motor : Swift.Equatable {}
+extension WayBandSDK.BluetoothPeripheral.Motor : Swift.Hashable {}
+extension WayBandSDK.PhoneDevice.NativeVibrationStrength : Swift.Equatable {}
+extension WayBandSDK.PhoneDevice.NativeVibrationStrength : Swift.Hashable {}
+extension WayBandSDK.DFUUuidType : Swift.Equatable {}
+extension WayBandSDK.DFUUuidType : Swift.Hashable {}
+extension WayBandSDK.DFUUuidType : Swift.RawRepresentable {}
+extension WayBandSDK.CustomVibrationPattern : Swift.Equatable {}
+extension WayBandSDK.CustomVibrationPattern : Swift.Hashable {}
+extension WayBandSDK.LogLevel : Swift.Equatable {}
+extension WayBandSDK.LogLevel : Swift.Hashable {}
+extension WayBandSDK.LogLevel : Swift.RawRepresentable {}
+extension WayBandSDK.DFUError : Swift.Equatable {}
+extension WayBandSDK.DFUError : Swift.Hashable {}
+extension WayBandSDK.DFUError : Swift.RawRepresentable {}
+extension WayBandSDK.DFUState : Swift.Equatable {}
+extension WayBandSDK.DFUState : Swift.Hashable {}
+extension WayBandSDK.DFUState : Swift.RawRepresentable {}
+extension WayBandSDK.Archive.ArchiveError : Swift.Equatable {}
+extension WayBandSDK.Archive.ArchiveError : Swift.Hashable {}
+extension WayBandSDK.Archive.AccessMode : Swift.Equatable {}
+extension WayBandSDK.Archive.AccessMode : Swift.Hashable {}
+extension WayBandSDK.Archive.AccessMode : Swift.RawRepresentable {}
+extension WayBandSDK.DFUFirmwareType : Swift.Equatable {}
+extension WayBandSDK.DFUFirmwareType : Swift.Hashable {}
+extension WayBandSDK.DFUFirmwareType : Swift.RawRepresentable {}
+extension WayBandSDK.BluetoothManager.Updates : Swift.Equatable {}
+extension WayBandSDK.BluetoothManager.Updates : Swift.Hashable {}
+extension WayBandSDK.CompressionMethod : Swift.Equatable {}
+extension WayBandSDK.CompressionMethod : Swift.Hashable {}
+extension WayBandSDK.CompressionMethod : Swift.RawRepresentable {}
